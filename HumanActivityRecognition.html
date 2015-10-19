@@ -68,9 +68,18 @@ img {
 </div>
 
 
-<p>A group of enthusiasts take measurements about themselves doing various exercises using devices such as Jawbone Up, Nike FuelBand and Fitbit.</p>
-<p>The goal of this project is to predict the manner in which they did barbell lifts (i.e. whether correctly or incorrectly). This is the “classe” variable in the training set. Other variables may be used for the prediction.</p>
-<p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a>.</p>
+<p>Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:</p>
+<ul>
+<li>exactly according to the specification (Class A),</li>
+<li>throwing the elbows to the front (Class B),</li>
+<li>lifting the dumbbell only halfway (Class C),</li>
+<li>lowering the dumbbell only halfway (Class D) and</li>
+<li>throwing the hips to the front (Class E).</li>
+</ul>
+<p>They measured their movements and the data can be found here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a>.</p>
+<p>Read more: <a href="http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz3oyROG8S5" class="uri">http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz3oyROG8S5</a></p>
+<p>The goal of this project is to predict the manner in which they did the exercises, that is, whether correctly (Class A) or incorrectly (Classes B to E). This is the “classe” variable in the training set.</p>
+<p>The other variables may be used for the prediction.</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
 ## Loading required package: ggplot2</code></pre>
