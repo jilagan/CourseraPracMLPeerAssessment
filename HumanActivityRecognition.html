@@ -68,8 +68,9 @@ img {
 </div>
 
 
-<p>The goal of this project is to predict the manner in which people did exercises. This is the “classe” variable in the training set. Other variables may be used for the prediction.</p>
-<p>The data for this project come from this source: [<a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a>].</p>
+<p>A group of enthusiasts take measurements about themselves doing various exercises using devices such as Jawbone Up, Nike FuelBand and Fitbit.</p>
+<p>The goal of this project is to predict the manner in which they did barbell lifts (i.e. whether correctly or incorrectly). This is the “classe” variable in the training set. Other variables may be used for the prediction.</p>
+<p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a>.</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
 ## Loading required package: ggplot2</code></pre>
@@ -82,6 +83,9 @@ pctTesting&lt;-dim(testing)[1] / (dim(training)[1] + dim(testing)[1])</code></pr
 <p>The training set has 19622 rows and 160 columns. The training set has 99.8981774% of the total data.</p>
 <p>The testing set has 20 rows and 160 columns. The testing set has 0.1018226% of the total data.</p>
 <p>We can therefore extract more data from the training set for cross-validation and (internal) testing before using the actual testing data set (pml-testing.csv) at the end of the exercise.</p>
+<p>The variable <em>classe</em> has five values as shown here:</p>
+<pre class="r"><code>levels(training$classe)</code></pre>
+<pre><code>## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot;</code></pre>
 </div>
 <div id="expectations" class="section level2">
 <h2>Expectations</h2>
