@@ -113,11 +113,12 @@ Cross-validation will be applied appropriately with the calls to the train funct
 
 
 ### Classification Tree (RPart)
+```{r}
 modelFit.CT <- train(classe ~ ., data=trainingML,method="rpart")
 pred.CT <- predict(modelFit.CT,newdata=testingML)
 acc.CT<-confusionMatrix(testingML$classe,pred.CT)
 acc.CT
-
+```
 
 ### Boost
 ```{r}
@@ -132,10 +133,10 @@ acc.gbm
 ```
 
 ## Findings
-The General Boosted Models method seems to yield the highest accuracy at **`r formatC(acc.gbm$overall[1])`**.
+The General Boosted Models method seems to yield the highest accuracy at **`r formatC(acc.gbm$overall[1])`**. The accuracy of the Classification Tree algorithm is only **`r formatC(acc.CT$overall[1])`**.
 
 ## Final Testing
-There is no way to determine if the predictions are actually correct, since pml-testing does not have the **classe** column. Instead, we will just 'predict' what the values of classe will be.
+We will predict what the values of classe will be.
 
 ```{r}
 pred.test <- predict(modelFit.gbm,newdata=testing)
@@ -151,7 +152,7 @@ pml_write_files = function(x){
   }
 }
 
-pml_write_files("answer")
+pml_write_files(pred.test)
 
 ```
 

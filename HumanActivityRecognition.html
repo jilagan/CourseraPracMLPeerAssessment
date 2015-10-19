@@ -163,7 +163,42 @@ pctTrainingML</code></pre>
 <p>Cross-validation will be applied appropriately with the calls to the train function.</p>
 <div id="classification-tree-rpart" class="section level3">
 <h3>Classification Tree (RPart)</h3>
-<p>modelFit.CT &lt;- train(classe ~ ., data=trainingML,method=“rpart”) pred.CT &lt;- predict(modelFit.CT,newdata=testingML) acc.CT&lt;-confusionMatrix(testingML$classe,pred.CT) acc.CT</p>
+<pre class="r"><code>modelFit.CT &lt;- train(classe ~ ., data=trainingML,method=&quot;rpart&quot;)</code></pre>
+<pre><code>## Loading required package: rpart</code></pre>
+<pre class="r"><code>pred.CT &lt;- predict(modelFit.CT,newdata=testingML)
+acc.CT&lt;-confusionMatrix(testingML$classe,pred.CT)
+acc.CT</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1357    3  693  171    8
+##          B  229  259  725  305    0
+##          C   38   28  819  483    0
+##          D   66    8  389  823    0
+##          E   15   10  557  200  660
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.4994          
+##                  95% CI : (0.4882, 0.5105)
+##     No Information Rate : 0.4057          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.3764          
+##  Mcnemar's Test P-Value : &lt; 2.2e-16       
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.7959  0.84091   0.2573   0.4152  0.98802
+## Specificity            0.8575  0.83298   0.8823   0.9210  0.89106
+## Pos Pred Value         0.6080  0.17062   0.5987   0.6400  0.45770
+## Neg Pred Value         0.9380  0.99226   0.6351   0.8233  0.99875
+## Prevalence             0.2173  0.03926   0.4057   0.2526  0.08514
+## Detection Rate         0.1730  0.03301   0.1044   0.1049  0.08412
+## Detection Prevalence   0.2845  0.19347   0.1744   0.1639  0.18379
+## Balanced Accuracy      0.8267  0.83694   0.5698   0.6681  0.93954</code></pre>
 </div>
 <div id="boost" class="section level3">
 <h3>Boost</h3>
@@ -179,46 +214,56 @@ acc.gbm</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2203   19    4    4    2
-##          B   41 1437   35    2    3
-##          C    0   36 1313   18    1
-##          D    3    3   47 1224    9
-##          E    1   16   14   18 1393
+##          A 2197   21   10    4    0
+##          B   42 1422   43    3    8
+##          C    0   39 1314   14    1
+##          D    3    5   53 1215   10
+##          E    2   18   18   24 1380
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9648          
-##                  95% CI : (0.9605, 0.9688)
-##     No Information Rate : 0.2865          
+##                Accuracy : 0.9595          
+##                  95% CI : (0.9549, 0.9637)
+##     No Information Rate : 0.286           
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.9555          
-##  Mcnemar's Test P-Value : 4.327e-07       
+##                   Kappa : 0.9487          
+##  Mcnemar's Test P-Value : 1.429e-10       
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9800   0.9510   0.9292   0.9668   0.9893
-## Specificity            0.9948   0.9872   0.9915   0.9906   0.9924
-## Pos Pred Value         0.9870   0.9466   0.9598   0.9518   0.9660
-## Neg Pred Value         0.9920   0.9883   0.9846   0.9936   0.9977
-## Prevalence             0.2865   0.1926   0.1801   0.1614   0.1795
-## Detection Rate         0.2808   0.1832   0.1673   0.1560   0.1775
+## Sensitivity            0.9791   0.9449   0.9138   0.9643   0.9864
+## Specificity            0.9938   0.9849   0.9916   0.9892   0.9904
+## Pos Pred Value         0.9843   0.9368   0.9605   0.9448   0.9570
+## Neg Pred Value         0.9916   0.9869   0.9809   0.9931   0.9970
+## Prevalence             0.2860   0.1918   0.1833   0.1606   0.1783
+## Detection Rate         0.2800   0.1812   0.1675   0.1549   0.1759
 ## Detection Prevalence   0.2845   0.1935   0.1744   0.1639   0.1838
-## Balanced Accuracy      0.9874   0.9691   0.9603   0.9787   0.9909</code></pre>
+## Balanced Accuracy      0.9864   0.9649   0.9527   0.9768   0.9884</code></pre>
 </div>
 </div>
 <div id="findings" class="section level2">
 <h2>Findings</h2>
-<p>The General Boosted Models method seems to yield the highest accuracy at <strong>0.9648</strong>.</p>
+<p>The General Boosted Models method seems to yield the highest accuracy at <strong>0.9595</strong>. The accuracy of the Classification Tree algorithm is only <strong>0.4994</strong>.</p>
 </div>
 <div id="final-testing" class="section level2">
 <h2>Final Testing</h2>
-<p>There is no way to determine if the predictions are actually correct, since pml-testing does not have the <strong>classe</strong> column. Instead, we will just ‘predict’ what the values of classe will be.</p>
+<p>We will predict what the values of classe will be.</p>
 <pre class="r"><code>pred.test &lt;- predict(modelFit.gbm,newdata=testing)
 pred.test</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
+<p>Write to files as dictated by Coursera (using the provided code).</p>
+<pre class="r"><code>pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(pred.test)</code></pre>
 </div>
 
 
