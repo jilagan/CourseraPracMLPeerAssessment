@@ -5,18 +5,56 @@ date: "19 October 2015"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+A group of enthusiasts take measurements about themselves doing various exercises using devices such as Jawbone Up, Nike FuelBand and Fitbit.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The goal of this project is to predict the manner in which they did barbell lifts (i.e. whether correctly or incorrectly). This is the "classe" variable in the training set. Other variables may be used for the prediction.
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
 
 ```{r}
-summary(cars)
+library(caret)
+
+training<-read.csv("pml-training.csv")
+testing<-read.csv("pml-testing.csv")
+pctTraining<-dim(training)[1] / (dim(training)[1] + dim(testing)[1])
+pctTesting<-dim(testing)[1] / (dim(training)[1] + dim(testing)[1])
 ```
 
-You can also embed plots, for example:
+## Exploratory Data Analysis
+The training set has `r dim(training)[1]` rows and `r dim(training)[2]` columns. The training set has `r pctTraining*100`% of the total data.
 
-```{r, echo=FALSE}
-plot(cars)
+The testing set has `r dim(testing)[1]` rows and `r dim(testing)[2]` columns. The testing set has `r pctTesting*100`% of the total data.
+
+We can therefore extract more data from the training set for cross-validation and (internal) testing before using the actual testing data set (pml-testing.csv) at the end of the exercise. 
+
+The variable *classe* has five values as shown here:
+
+```{r}
+levels(training$classe)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Expectations
+
+A cross-validation sample is taken from 20% the training set to estimate the out-of-sample error.
+
+Likewise, a testing sample (apart from the actual test data) is taken from another 20% of the training set.
+
+```{r}
+inTraining<-createDataPartition(training$classe,p=0.6,list=FALSE)
+trainingML<-training[inTraining,]
+temp<-training[-inTraining,]
+inTesting<-createDataPartition(temp$classe,p=0.5,list=FALSE)
+testingML<-temp[inTesting,]
+xvalidationML<-temp[-inTesting,]
+```
+
+Training, Cross-Validation and Testing should now have a 60-20-20 mix.
+
+```{r}
+pctTrainingML<-dim(trainingML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
+pctTestingML<-dim(testingML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
+pctXValidationML<-dim(xvalidationML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
+pctTrainingML
+pctTestingML
+pctXValidationML
+```
