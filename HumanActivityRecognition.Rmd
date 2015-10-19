@@ -5,14 +5,29 @@ date: "19 October 2015"
 output: html_document
 ---
 
-A group of enthusiasts take measurements about themselves doing various exercises using devices such as Jawbone Up, Nike FuelBand and Fitbit.
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
 
-The goal of this project is to predict the manner in which they did barbell lifts (i.e. whether correctly or incorrectly). This is the "classe" variable in the training set. Other variables may be used for the prediction.
+* **Class A**: Exactly according to the specification, 
+* **Class B**: Throwing the elbows to the front, 
+* **Class C**: Lifting the dumbbell only halfway, 
+* **Class D**: Lowering the dumbbell only halfway, and 
+* **Class E**: Throwing the hips to the front.
 
-The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+They measured their movements, and the data can be found here: 
+http://groupware.les.inf.puc-rio.br/har.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz3oyROG8S5
+
+The goal of this project is to predict the manner in which they did the exercises, that is, whether correctly (Class A) or incorrectly (Classes B to E). This is the **classe** variable in the training set. 
+
+The other variables may be used for the prediction.
 
 ```{r}
 library(caret)
+library(randomForest)
+library(ggplot2)
+library(gbm)
+library(plyr)
 
 training<-read.csv("pml-training.csv")
 testing<-read.csv("pml-testing.csv")
@@ -20,10 +35,33 @@ pctTraining<-dim(training)[1] / (dim(training)[1] + dim(testing)[1])
 pctTesting<-dim(testing)[1] / (dim(training)[1] + dim(testing)[1])
 ```
 
-## Exploratory Data Analysis
-The training set has `r dim(training)[1]` rows and `r dim(training)[2]` columns. The training set has `r pctTraining*100`% of the total data.
+## Data Cleansing and Exploratory Data Analysis
 
-The testing set has `r dim(testing)[1]` rows and `r dim(testing)[2]` columns. The testing set has `r pctTesting*100`% of the total data.
+**Note**
+
+_After going through several trials, I realized that I needed to reduce the data further just to speed things up. With the data as-is, the training steps couldn't even finish at all. There are a number of columns that don't contain data, so I decided to take those out._
+
+Determine which columns have all blanks and take them out.
+```{r}
+isemptycol.training<-sapply(1:ncol(training), function(x) all(training[x]=='' || is.na(training[x])))
+# Make sure that the training data also has the same characteristics
+isemptycol.testing<-sapply(1:ncol(testing), function(x) all(testing[x]=='' || is.na(testing[x])))
+all(isemptycol.training==isemptycol.testing)
+
+# Remove almost the same columns from both training and testing data sets.
+# Note that the last column of training is 'classe' and that of testing is 'problem_id'
+training<-training[!isemptycol.training]
+testing<-testing[!isemptycol.testing]
+
+# Remove columns 1-7 ("X","user_name","raw_timestamp_part_1","raw_timestamp_part_2",
+# "cvtd_timestamp","new_window","num_window") as these won't impact prediction
+training<-training[-1:-7]
+testing<-testing[-1:-7]
+```
+
+The training set has **`r formatC(dim(training)[1],big.mark=",")`** rows and **`r formatC(dim(training)[2],big.mark=",")`** columns. The training set has **`r formatC(pctTraining*100)`%** of the total data.
+
+The testing set has **`r formatC(dim(testing)[1],big.mark=",")`** rows and **`r formatC(dim(testing)[2],big.mark=",")`** columns. The testing set has **`r formatC(pctTesting*100)`%** of the total data.
 
 We can therefore extract more data from the training set for cross-validation and (internal) testing before using the actual testing data set (pml-testing.csv) at the end of the exercise. 
 
@@ -33,28 +71,90 @@ The variable *classe* has five values as shown here:
 levels(training$classe)
 ```
 
-## Expectations
+There are columns containing average values: 
+```{r}
+averages<-colnames(training[grepl('avg',colnames(training))])
+averages
+```
 
 A cross-validation sample is taken from 20% the training set to estimate the out-of-sample error.
 
 Likewise, a testing sample (apart from the actual test data) is taken from another 20% of the training set.
 
 ```{r}
+set.seed(12345);
 inTraining<-createDataPartition(training$classe,p=0.6,list=FALSE)
 trainingML<-training[inTraining,]
-temp<-training[-inTraining,]
-inTesting<-createDataPartition(temp$classe,p=0.5,list=FALSE)
-testingML<-temp[inTesting,]
-xvalidationML<-temp[-inTesting,]
+testingML<-training[-inTraining,]
 ```
 
-Training, Cross-Validation and Testing should now have a 60-20-20 mix.
+Training and Testing should now have a 60-40 mix.
 
 ```{r}
-pctTrainingML<-dim(trainingML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
-pctTestingML<-dim(testingML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
-pctXValidationML<-dim(xvalidationML)[1] / (dim(trainingML)[1] + dim(testingML)[1] + dim(xvalidationML)[1])
+pctTrainingML<-dim(trainingML)[1] / (dim(trainingML)[1] + dim(testingML)[1])
+pctTestingML<-dim(testingML)[1] / (dim(trainingML)[1] + dim(testingML)[1])
 pctTrainingML
 pctTestingML
-pctXValidationML
 ```
+### Initial Plots
+```{r}
+qplot(classe,data=trainingML)
+```
+
+
+## Expectations
+We expect the GBM test to perform high (above 90% accuracy) in the out of sample data, whereas the Classification Tree model will not perform as well.
+
+## Training, Validation and Testing
+This does not look like a linear prediction problem and more like a classification one, so we can work with Classification Tree and General Boosted Models (GBM) as candidates. We can also look at Generalized Linear Regression for comparison.
+
+Cross-validation will be applied appropriately with the calls to the train function.
+
+
+
+### Classification Tree (RPart)
+```{r}
+modelFit.CT <- train(classe ~ ., data=trainingML,method="rpart")
+pred.CT <- predict(modelFit.CT,newdata=testingML)
+acc.CT<-confusionMatrix(testingML$classe,pred.CT)
+acc.CT
+```
+
+### Boost
+```{r}
+fitControl.gbm <- trainControl(method="cv",
+                           number=5,
+                           repeats=1,
+                           verboseIter=FALSE)
+modelFit.gbm <- train(classe ~ ., data=trainingML,method="gbm",trControl=fitControl.gbm,verbose=FALSE)
+pred.gbm <- predict(modelFit.gbm,newdata=testingML)
+acc.gbm<-confusionMatrix(testingML$classe,pred.gbm)
+acc.gbm
+```
+
+## Findings
+The General Boosted Models method seems to yield the highest accuracy at **`r formatC(acc.gbm$overall[1])`**. The accuracy of the Classification Tree algorithm is only **`r formatC(acc.CT$overall[1])`**.
+
+## Final Testing
+We will predict what the values of classe will be.
+
+```{r}
+pred.test <- predict(modelFit.gbm,newdata=testing)
+pred.test
+```
+Write to files as dictated by Coursera (using the provided code).
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(pred.test)
+
+```
+
+
+
